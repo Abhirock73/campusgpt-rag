@@ -10,12 +10,10 @@ import { generateEmbeddings } from '../ai/embeddingService.js';
 import {
   upsertPoints,
   deletePointsByVersionId,
-  deletePointsByDocumentId,
   setPointsActiveByVersionId,
 } from '../vector/qdrantService.js';
 import { syncBM25Index } from '../retrieval/keywordRetriever.js';
 import cacheInvalidation from '../cache/cacheInvalidation.js';
-import { calculateFileHash } from './fileHasher.js';
 import { validatePhysicalFile } from './documentValidator.js';
 
 /**

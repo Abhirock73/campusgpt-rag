@@ -8,19 +8,13 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
-  Clock,
   ExternalLink,
-  Layers,
-  FileText,
   Search,
   Check,
   X,
   Eye,
   RotateCcw,
-  Sparkles,
-  HelpCircle,
   Database,
-  Calendar,
   Square,
 } from 'lucide-react';
 
@@ -87,15 +81,25 @@ const KnowledgeManagement = () => {
     }
   }, [pagination.page, pagination.limit, statusFilter, branchFilter, semesterFilter, yearFilter, searchFilter]);
 
+  const hasActiveJob = Boolean(
+    stats?.pyqDrive?.activeJob?.id ||
+    stats?.pyqDrive?.activeJob ||
+    stats?.officialCrawler?.activeJob?.id ||
+    stats?.officialCrawler?.activeJob
+  );
+
   useEffect(() => {
     fetchStats();
     fetchPyqDocs();
-    const intervalTime = (stats?.pyqDrive?.activeJob || stats?.officialCrawler?.activeJob) ? 3500 : 10000;
+  }, [fetchStats, fetchPyqDocs]);
+
+  useEffect(() => {
+    const intervalTime = hasActiveJob ? 3500 : 10000;
     const interval = setInterval(() => {
       fetchStats();
     }, intervalTime);
     return () => clearInterval(interval);
-  }, [fetchStats, fetchPyqDocs, stats?.pyqDrive?.activeJob, stats?.officialCrawler?.activeJob]);
+  }, [fetchStats, hasActiveJob]);
 
   // Sync Trigger Handlers
   const handleStartSync = async (isIncremental = false) => {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { chatAPI, conversationAPI } from '../services/api';
+import { conversationAPI } from '../services/api';
 
 const ChatContext = createContext(null);
 
@@ -119,6 +119,16 @@ export const ChatProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [isLoadingChats, setIsLoadingChats] = useState(false);
+
+  const activeChatIdRef = useRef(activeChatId);
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
+  const chatsRef = useRef(chats);
+  useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
 
   // Helper to sort chats: pinned first, then newest updatedAt
   const sortConversations = (convList) => {
@@ -342,8 +352,8 @@ export const ChatProvider = ({ children }) => {
    * Add a user message strictly to the active chat session
    */
   const addMessageToActiveChat = useCallback((userMessage) => {
-    let currentId = activeChatId;
-    const exists = currentId && chats.some((c) => matchId(c, currentId));
+    let currentId = activeChatIdRef.current;
+    const exists = currentId && chatsRef.current.some((c) => matchId(c, currentId));
 
     if (!exists) {
       currentId = currentId || `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -380,13 +390,13 @@ export const ChatProvider = ({ children }) => {
     );
 
     return currentId;
-  }, [activeChatId, chats]);
+  }, []);
 
   /**
    * Add assistant response placeholder strictly to target chat session
    */
   const addAssistantMessageToActiveChat = useCallback((assistantMessage, targetChatId) => {
-    const targetId = targetChatId || activeChatId;
+    const targetId = targetChatId || activeChatIdRef.current;
     setChats((prev) =>
       prev.map((c) => {
         if (matchId(c, targetId)) {
@@ -399,13 +409,13 @@ export const ChatProvider = ({ children }) => {
         return c;
       })
     );
-  }, [activeChatId]);
+  }, []);
 
   /**
    * Update an existing message in a chat session (for SSE streaming chunks, status, sources, suggestions)
    */
   const updateMessageInChat = useCallback((messageId, updater, targetChatId) => {
-    const targetId = targetChatId || activeChatId;
+    const targetId = targetChatId || activeChatIdRef.current;
     setChats((prev) =>
       prev.map((c) => {
         if (matchId(c, targetId)) {
@@ -424,7 +434,7 @@ export const ChatProvider = ({ children }) => {
         return c;
       })
     );
-  }, [activeChatId]);
+  }, []);
 
   /**
    * Replace a temporary/draft chatId with the real backend conversation ID and update title
@@ -455,25 +465,43 @@ export const ChatProvider = ({ children }) => {
     setActiveChatId((curr) => (matchId({ id: curr }, strOld) ? strNew : curr));
   }, []);
 
+  const contextValue = React.useMemo(
+    () => ({
+      chats,
+      activeChatId,
+      activeChat,
+      activeMessages,
+      isLoadingChats,
+      createNewChat,
+      selectChat,
+      renameChat,
+      pinChat,
+      deleteChat,
+      addMessageToActiveChat,
+      addAssistantMessageToActiveChat,
+      updateMessageInChat,
+      setConversationSessionId,
+    }),
+    [
+      chats,
+      activeChatId,
+      activeChat,
+      activeMessages,
+      isLoadingChats,
+      createNewChat,
+      selectChat,
+      renameChat,
+      pinChat,
+      deleteChat,
+      addMessageToActiveChat,
+      addAssistantMessageToActiveChat,
+      updateMessageInChat,
+      setConversationSessionId,
+    ]
+  );
+
   return (
-    <ChatContext.Provider
-      value={{
-        chats,
-        activeChatId,
-        activeChat,
-        activeMessages,
-        isLoadingChats,
-        createNewChat,
-        selectChat,
-        renameChat,
-        pinChat,
-        deleteChat,
-        addMessageToActiveChat,
-        addAssistantMessageToActiveChat,
-        updateMessageInChat,
-        setConversationSessionId,
-      }}
-    >
+    <ChatContext.Provider value={contextValue}>
       {children}
     </ChatContext.Provider>
   );

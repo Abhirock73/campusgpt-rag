@@ -13,7 +13,6 @@
  */
 
 import {
-  UNIVERSITY_TERM_MAP,
   ROMAN_SEMESTER_MAP,
   SEMESTER_TO_ROMAN,
   normalizeUniversityTerms,

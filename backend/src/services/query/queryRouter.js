@@ -1,13 +1,9 @@
-import { analyzeQuery } from './queryAnalyzer.js';
-import { classifyIntent, INTENTS } from './intentClassifier.js';
 import { understandQuery } from './queryUnderstandingService.js';
 import { resolveUserContext, detectProfileUpdateRequest } from './userContextService.js';
 import courseService from '../courses/courseService.js';
-import academicEventService from '../events/academicEventService.js';
 import documentSearchService from '../documents/documentSearchService.js';
 import { answerQuestion } from '../rag/ragService.js';
-import { retrieveHybridContext } from '../retrieval/hybridRetriever.js';
-import { generateAnswer, generateGeneralAnswer, generateGeneralAnswerStream } from '../ai/llmService.js';
+import { generateGeneralAnswerStream } from '../ai/llmService.js';
 import User from '../../models/User.js';
 import ChatMessage from '../../models/ChatMessage.js';
 
@@ -38,44 +34,6 @@ const formatCoursesResponse = (courses, query) => {
   return text.trim();
 };
 
-/**
- * Format structured academic deadline/event results
- */
-const formatEventsResponse = (events, query) => {
-  if (!events || events.length === 0) {
-    return null;
-  }
-
-  let text = `Here are the relevant academic dates and deadlines from the official university calendar:\n\n`;
-
-  events.forEach((ev, idx) => {
-    text += `### ${idx + 1}. **${ev.title}**\n`;
-    text += `- **Category:** ${ev.eventType.replace('_', ' ').toUpperCase()}\n`;
-    if (ev.registrationDeadline) {
-      text += `- **Registration Deadline:** ⏰ **${new Date(ev.registrationDeadline).toLocaleDateString('en-US', { dateStyle: 'full' })}**\n`;
-    }
-    if (ev.startDate) {
-      text += `- **Start Date:** ${new Date(ev.startDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}`;
-      if (ev.endDate) {
-        text += ` to ${new Date(ev.endDate).toLocaleDateString('en-US', { dateStyle: 'medium' })}`;
-      }
-      text += `\n`;
-    }
-    if (ev.description) {
-      text += `- **Details:** ${ev.description}\n`;
-    }
-    if (ev.sourceUrl) {
-      text += `- **Official Notice:** [View Notice](${ev.sourceUrl})\n`;
-    }
-    text += `\n`;
-  });
-
-  return text.trim();
-};
-
-/**
- * Format document discovery results (e.g. Previous Year Papers or Notices)
- */
 /**
  * Format specialized PYQ search response matching exact prompt guidelines
  */
@@ -127,26 +85,6 @@ const formatPyqSearchResponse = (docs, query, analysis) => {
 
   res += `*Source: NIT KKR PYQ Drive*`;
   return res.trim();
-};
-
-const formatDocumentSearchResponse = (docs, query, analysis) => {
-  if (!docs || docs.length === 0) {
-    return null;
-  }
-
-  let text = `Found ${docs.length} verified official university document(s) matching your request:\n\n`;
-
-  docs.forEach((doc, idx) => {
-    text += `### ${idx + 1}. 📄 **${doc.title}**\n`;
-    text += `- **Type:** ${doc.documentType.replace(/_/g, ' ').toUpperCase()} | **Category:** ${doc.category}\n`;
-    text += `- **Department:** ${doc.department}\n`;
-    if (doc.year) text += `- **Academic Year:** ${doc.year}\n`;
-    if (doc.courseCode) text += `- **Course Code:** ${doc.courseCode}\n`;
-    if (doc.sourceUrl) text += `- **Official Source:** [Download/View Document](${doc.sourceUrl})\n`;
-    text += `\n`;
-  });
-
-  return text.trim();
 };
 
 /**
@@ -331,7 +269,10 @@ export const routeQuery = async (rawQuery, user = null, options = {}) => {
     const institutePart = understanding.hybridSplit?.institutePart || query;
 
     // 1. Conceptual answer from Gemini
-    const generalAnswer = await generateGeneralAnswerStream(generalPart, { onToken: callbacks.onToken });
+    const generalResult = await generateGeneralAnswerStream(generalPart, { onToken: callbacks.onToken });
+    // generateGeneralAnswerStream returns a new String() object with .answer on it
+    const generalAnswerText = (generalResult && generalResult.answer) ? generalResult.answer : String(generalResult);
+    const generalSuggestions = (generalResult && generalResult.suggestions) ? generalResult.suggestions : [];
 
     // 2. Institute specific check: course search or RAG
     callbacks.onStatus?.('Searching NIT Kurukshetra records...');
@@ -361,10 +302,11 @@ export const routeQuery = async (rawQuery, user = null, options = {}) => {
       instituteSources = ragResult.sources || [];
     }
 
-    const combinedAnswer = `### Conceptual Overview\n\n${generalAnswer}\n\n---\n\n### At NIT Kurukshetra\n\n${instituteAnswer}`;
+    const combinedAnswer = `### Conceptual Overview\n\n${generalAnswerText}\n\n---\n\n### At NIT Kurukshetra\n\n${instituteAnswer}`;
 
     return {
       answer: combinedAnswer,
+      suggestions: generalSuggestions,
       queryType: 'hybrid',
       intent: understanding.intent || 'HYBRID_INQUIRY',
       coverage: 'FULL',

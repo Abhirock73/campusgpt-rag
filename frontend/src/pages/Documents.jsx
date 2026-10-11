@@ -4,11 +4,6 @@ import {
   FileText,
   Search,
   Filter,
-  ArrowRight,
-  BookOpen,
-  Calendar,
-  Layers,
-  Sparkles,
   Bot,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -45,10 +40,12 @@ const Documents = () => {
 
   const filteredDocs = documents.filter((doc) => {
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+    const searchLower = (searchQuery || '').trim().toLowerCase();
     const matchesSearch =
-      !searchQuery ||
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.department.toLowerCase().includes(searchQuery.toLowerCase());
+      !searchLower ||
+      (doc.title && doc.title.toLowerCase().includes(searchLower)) ||
+      (doc.department && doc.department.toLowerCase().includes(searchLower)) ||
+      (doc.description && doc.description.toLowerCase().includes(searchLower));
     return matchesCategory && matchesSearch;
   });
 

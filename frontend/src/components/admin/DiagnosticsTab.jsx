@@ -6,12 +6,6 @@ import {
   RefreshCw,
   AlertCircle,
   Sparkles,
-  Layers,
-  Zap,
-  Target,
-  FileText,
-  Sliders,
-  CheckCircle2,
 } from 'lucide-react';
 
 const EXAMPLE_QUERIES = [

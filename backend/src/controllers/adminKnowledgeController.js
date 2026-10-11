@@ -2,12 +2,9 @@ import PyqDocument from '../models/PyqDocument.js';
 import PyqSyncJob from '../models/PyqSyncJob.js';
 import CrawlUrl from '../models/CrawlUrl.js';
 import CrawlJob from '../models/CrawlJob.js';
-import Document from '../models/Document.js';
-import WebsiteSource from '../models/WebsiteSource.js';
 import { startDriveSync, stopDriveSync, reconcileStaleSyncJobs, getLatestSyncJob } from '../services/drive/driveSyncService.js';
 import driveClient from '../services/drive/driveClient.js';
 import pyqProcessor from '../services/pyq/pyqProcessor.js';
-import { executeCrawl } from '../services/crawler/crawlerEngine.js';
 
 /**
  * GET /api/admin/knowledge/stats

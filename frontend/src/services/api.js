@@ -22,7 +22,6 @@ async function request(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${cleanEndpoint}`;
 
-  console.info(`[AskCampusAi API] ${options.method || 'GET'} -> ${url}`);
 
   try {
     const response = await fetch(url, {

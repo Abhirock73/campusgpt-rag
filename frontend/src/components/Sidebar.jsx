@@ -148,11 +148,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileOpen && setMobileOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    active
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${active
                       ? 'bg-campus-card text-white font-medium border border-campus-border/60'
                       : 'text-campus-muted hover:text-white hover:bg-campus-card/50'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${active ? 'text-blue-400' : 'text-campus-muted'}`} />
                   <span>{item.name}</span>
@@ -180,9 +179,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                 </span>
               )}
               <ChevronDown
-                className={`w-3.5 h-3.5 text-campus-muted transition-transform duration-200 ${
-                  chatsFolderOpen ? '' : '-rotate-90'
-                }`}
+                className={`w-3.5 h-3.5 text-campus-muted transition-transform duration-200 ${chatsFolderOpen ? '' : '-rotate-90'
+                  }`}
               />
             </div>
           </button>
@@ -198,9 +196,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                   const isCurrent =
                     Boolean(
                       activeChatId &&
-                        (String(activeChatId) === String(chat.id) ||
-                          String(activeChatId) === String(chat._id) ||
-                          (chat.tempId && String(activeChatId) === String(chat.tempId)))
+                      (String(activeChatId) === String(chat.id) ||
+                        String(activeChatId) === String(chat._id) ||
+                        (chat.tempId && String(activeChatId) === String(chat.tempId)))
                     ) && location.pathname === '/assistant';
                   const isEditing = editingChatId === chat.id;
                   const isMenuOpen = activeMenuChatId === chat.id;
@@ -209,11 +207,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                     <div
                       key={chat.id}
                       onClick={() => !isEditing && handleSelectChat(chat.id)}
-                      className={`group relative flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors ${
-                        isCurrent
+                      className={`group relative flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors ${isCurrent
                           ? 'bg-campus-card text-white font-medium border border-campus-border shadow-sm'
                           : 'text-campus-muted hover:text-white hover:bg-campus-card/50'
-                      }`}
+                        }`}
                     >
                       {isEditing ? (
                         <div
@@ -269,11 +266,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                                 setActiveMenuChatId((prev) => (prev === chat.id ? null : chat.id));
                               }}
                               title="Chat options"
-                              className={`p-1 rounded text-campus-muted hover:text-white hover:bg-zinc-700/60 transition-all ${
-                                isMenuOpen
+                              className={`p-1 rounded text-campus-muted hover:text-white hover:bg-zinc-700/60 transition-all ${isMenuOpen
                                   ? 'opacity-100 bg-zinc-700/60 text-white'
                                   : 'opacity-70 md:opacity-0 md:group-hover:opacity-100'
-                              }`}
+                                }`}
                             >
                               <MoreVertical className="w-3.5 h-3.5" />
                             </button>

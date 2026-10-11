@@ -243,11 +243,11 @@ ${question}
 
 GROUNDED ANSWER:`;
 
-  const configuredModel = process.env.LLM_MODEL || 'gemini-3.5-flash-lite';
+  const configuredModel = process.env.LLM_MODEL || 'gemini-2.0-flash-lite';
   const modelsToTry = [
     configuredModel,
-    'gemini-3.5-flash-lite',
-    'gemini-3.8-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
   ];
 
   let lastError;
@@ -357,11 +357,11 @@ Formatting Guidelines:
 - At the VERY END of your answer, on a final line, suggest 2 to 3 concise, clickable follow-up questions:
   [SUGGESTIONS: "Follow-up question 1?", "Follow-up question 2?"]`;
 
-  const configuredModel = process.env.LLM_MODEL || 'gemini-3.5-flash-lite';
+  const configuredModel = process.env.LLM_MODEL || 'gemini-2.0-flash-lite';
   const modelsToTry = [
     configuredModel,
-    'gemini-3.5-flash-lite',
-    'gemini-3.8-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
   ];
 
   let lastError;
@@ -509,7 +509,7 @@ Examples:
 User Inquiry: "${userQuery.slice(0, 300)}"
 Topic Title:`;
 
-    const model = process.env.LLM_MODEL || 'gemini-3.5-flash-lite';
+    const model = process.env.LLM_MODEL || 'gemini-2.0-flash-lite';
     const url = `${GEMINI_API_BASE}/models/${model}:generateContent?key=${apiKey}`;
 
     const resp = await fetch(url, {

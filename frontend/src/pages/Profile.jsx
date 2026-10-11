@@ -35,6 +35,12 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    if (cachedUser && !profileData) {
+      setProfileData(cachedUser);
+    }
+  }, [cachedUser, profileData]);
+
+  useEffect(() => {
     fetchFreshProfile();
   }, []);
 

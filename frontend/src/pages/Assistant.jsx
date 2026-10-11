@@ -9,7 +9,6 @@ import { useChat } from '../context/ChatContext';
 import { chatAPI } from '../services/api';
 import {
   GraduationCap,
-  Bot,
   User,
   ArrowUp,
   RotateCcw,
@@ -89,8 +88,8 @@ const formatMarkdownContent = (text) => {
   if (!text || typeof text !== 'string') return '';
   let processed = text;
   // Normalize LaTeX delimiters \( ... \) -> $ ... $ and \[ ... \] -> $$ ... $$
-  processed = processed.replace(/\\\((.*?)\\\)/gs, '$$$1$$');
-  processed = processed.replace(/\\\[(.*?)\\\]/gs, '$$$$$1$$$$');
+  processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (_, match) => `$${match}$`);
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (_, match) => `$$${match}$$`);
   // Fix headings without space: e.g. "###Heading" -> "### Heading"
   processed = processed.replace(/^(#{1,6})([^\s#])/gm, '$1 $2');
   return processed;
@@ -672,7 +671,11 @@ const Assistant = ({ onOpenMobileNav }) => {
                               <em className="italic text-zinc-300">{children}</em>
                             ),
                             pre: ({ children }) => {
-                              const codeProps = children?.props || {};
+                              const codeChild =
+                                React.Children.toArray(children).find(
+                                  (c) => React.isValidElement(c) && (c.type === 'code' || c.props?.className)
+                                ) || (React.isValidElement(children) ? children : null);
+                              const codeProps = codeChild?.props || {};
                               return (
                                 <CodeBlock className={codeProps.className}>
                                   {codeProps.children || children}
@@ -680,6 +683,14 @@ const Assistant = ({ onOpenMobileNav }) => {
                               );
                             },
                             code: ({ node, className, children, ...props }) => {
+                              const isCodeBlock = Boolean(className && /language-(\w+)/.test(className));
+                              if (isCodeBlock) {
+                                return (
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              }
                               return (
                                 <code
                                   className="px-1.5 py-0.5 mx-0.5 rounded-md bg-[#141517] border border-campus-border/60 text-blue-300 font-mono text-[12px] font-medium"

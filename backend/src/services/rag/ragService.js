@@ -1,7 +1,6 @@
 import { retrieveHybridContext } from '../retrieval/hybridRetriever.js';
 import { retrieveVectorCandidates } from '../retrieval/vectorRetriever.js';
-import { generateAnswer, generateAnswerStream } from '../ai/llmService.js';
-import { assessEvidenceCoverage } from './evidenceAssessor.js';
+import { generateAnswerStream } from '../ai/llmService.js';
 import { assessEvidenceLLM } from './evidenceAssessmentService.js';
 import { analyzeQuery } from '../query/queryAnalyzer.js';
 import exactQueryCache from '../cache/exactQueryCache.js';

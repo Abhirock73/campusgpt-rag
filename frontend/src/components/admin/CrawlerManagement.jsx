@@ -12,14 +12,8 @@ import {
   X,
   Clock,
   ExternalLink,
-  ShieldCheck,
-  FileText,
-  FileCheck,
-  Filter,
   Layers,
   Terminal,
-  Calendar,
-  AlertTriangle,
 } from 'lucide-react';
 
 const CrawlerManagement = () => {
