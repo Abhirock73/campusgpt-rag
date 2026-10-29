@@ -1,0 +1,1 @@
+In Redis, the Semantic Cache stores a single key containing a JSON array of past question-answer objects, including their raw 768-dimensional embedding vectors.
