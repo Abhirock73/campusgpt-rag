@@ -1,6 +1,6 @@
 # 🎓 CampusGPT (AskCampusAi) — Comprehensive Architecture & Workflow Guide
 
-> **An AI-powered, retrieval-augmented campus intelligence platform designed for NIT Kurukshetra students and faculty.**  
+> **An AI-powered, retrieval-augmented campus intelligence platform designed for NIT Kurukshetra students and faculty.**
 > Built to eliminate academic information fragmentation by providing verified, instant answers to university regulations, course syllabi, exam schedules, and previous year question papers (PYQs).
 
 ---
@@ -50,40 +50,41 @@ Students frequently rely on rumors or spend hours hunting down specific clauses 
 
 ```mermaid
 flowchart TD
-    User([Student / Admin Browser]) <-->|HTTP / SSE Stream| Frontend[React + Vite + TailwindCSS Frontend]
-    Frontend <-->|REST API + SSE| Backend[Node.js + Express API Gateway]
+    User(["Student / Admin Browser"]) <-->|"HTTP / SSE Stream"| Frontend["React + Vite + TailwindCSS Frontend"]
+    Frontend <-->|"REST API + SSE"| Backend["Node.js + Express API Gateway"]
 
-    subgraph "Query Orchestration Engine"
-        Backend --> Router[Intelligent Query Router]
-        Router --> ContextResolver[Context Precedence & User Profiler]
-        Router --> ExactCache[(Redis Exact Cache)]
-        Router --> SemanticCache[(Semantic Vector Cache)]
+    subgraph QO["Query Orchestration Engine"]
+        Backend --> Router["Intelligent Query Router"]
+        Router --> ContextResolver["Context Precedence and User Profiler"]
+        Router --> ExactCache[("Redis Exact Cache")]
+        Router --> SemanticCache[("Semantic Vector Cache")]
     end
 
-    subgraph "Data & Retrieval Layer"
-        Router -->|Official Regulations| HybridRetriever[Hybrid Retrieval Engine]
-        HybridRetriever --> VectorSearch[Dense Qdrant Vector Search]
-        HybridRetriever --> BM25Search[Sparse BM25 Keyword Search]
-        VectorSearch & BM25Search --> RRF[Reciprocal Rank Fusion + Reranker]
-        RRF --> EvidenceAssessor[LLM Claim-Level Evidence Assessor]
-        
-        Router -->|Structured Data| MongoCourses[(MongoDB: Courses & Events)]
-        Router -->|PYQ Search| PyqEngine[(MongoDB: PYQ Drive Metadata)]
+    subgraph DR["Data and Retrieval Layer"]
+        Router -->|"Official Regulations"| HybridRetriever["Hybrid Retrieval Engine"]
+        HybridRetriever --> VectorSearch["Dense Qdrant Vector Search"]
+        HybridRetriever --> BM25Search["Sparse BM25 Keyword Search"]
+        VectorSearch --> RRF["Reciprocal Rank Fusion + Reranker"]
+        BM25Search --> RRF
+        RRF --> EvidenceAssessor["LLM Claim-Level Evidence Assessor"]
+
+        Router -->|"Structured Data"| MongoCourses[("MongoDB: Courses and Events")]
+        Router -->|"PYQ Search"| PyqEngine[("MongoDB: PYQ Drive Metadata")]
     end
 
-    subgraph "Knowledge Ingestion Engines"
-        Crawler[Autonomous Polite Web Crawler] --> IngestionPipe[Atomic Ingestion Pipeline]
-        DriveSync[Google Drive PYQ Sync Worker] --> PyqEngine
-        ManualUpload[Admin PDF Upload] --> IngestionPipe
-        IngestionPipe --> Chunker[Semantic Recursive Chunker]
-        Chunker --> Embedder[Google Gemini Embeddings text-embedding-004]
-        Embedder --> QdrantDB[(Qdrant Vector Database)]
-        IngestionPipe --> MongoDB[(MongoDB Relational Metadata)]
+    subgraph KI["Knowledge Ingestion Engines"]
+        Crawler["Autonomous Polite Web Crawler"] --> IngestionPipe["Atomic Ingestion Pipeline"]
+        DriveSync["Google Drive PYQ Sync Worker"] --> PyqEngine
+        ManualUpload["Admin PDF Upload"] --> IngestionPipe
+        IngestionPipe --> Chunker["Semantic Recursive Chunker"]
+        Chunker --> Embedder["Google Gemini Embeddings text-embedding-004"]
+        Embedder --> QdrantDB[("Qdrant Vector Database")]
+        IngestionPipe --> MongoDB[("MongoDB Relational Metadata")]
     end
 
-    subgraph "Generation Layer"
-        EvidenceAssessor -->|Verified Evidence| LLM[Google Gemini 1.5 Flash / 2.0]
-        LLM -->|Token Stream + Suggestions| Backend
+    subgraph GL["Generation Layer"]
+        EvidenceAssessor -->|"Verified Evidence"| LLM["Google Gemini 1.5 Flash / 2.0"]
+        LLM -->|"Token Stream + Suggestions"| Backend
     end
 ```
 
@@ -95,9 +96,10 @@ flowchart TD
 * **Objective:** Direct each query to the optimal execution path (preventing heavy RAG searches for simple greetings or catalog queries).
 * **Technique / Algorithm:**
   1. **Rule & Regex Pre-filtering:** Instantly captures greetings (`"hi"`, `"thank you"`), profile update requests (`"I am in 6th sem"`), and pure general computer science concepts (`"Explain QuickSort"`).
-  2. **Entity Decomposition:** Extracts academic terms using a custom institute lexicon (`queryTerminology.js`) mapping synonyms (e.g., *"DBMS"* $\rightarrow$ *"Database Management Systems"*, *"PPO"* $\rightarrow$ *"Pre-Placement Offer"*, *"odd sem"* $\rightarrow$ Semesters 1, 3, 5, 7).
+  2. **Entity Decomposition:** Extracts academic terms using a custom institute lexicon (`queryTerminology.js`) mapping synonyms (e.g., *"DBMS"* → *"Database Management Systems"*, *"PPO"* → *"Pre-Placement Offer"*, *"odd sem"* → Semesters 1, 3, 5, 7).
   3. **Context Precedence Resolution:**
-     $$\text{Explicit Query Entity} > \text{Saved Student Profile} > \text{Recent Conversation Memory} > \text{Default Prompting}$$
+
+     **Explicit Query Entity > Saved Student Profile > Recent Conversation Memory > Default Prompting**
   4. **Multi-Route Execution:**
      * `chat`: Instant friendly conversational response.
      * `general`: Direct Gemini general-knowledge response (no campus retrieval needed).
@@ -117,44 +119,46 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Query([Student Query Inbound]) --> Normalizer[Normalize Query: Trim, Lowercase, Strip Punctuation]
-    Normalizer --> Hasher[Compute SHA-256 Hash]
-    
-    subgraph "Tier 1: Exact Query Cache (Redis)"
-        Hasher --> ExactLookup{Redis GET rag:v{version}:public:{hash}}
-        ExactLookup -->|Cache HIT (<10ms)| ReturnExact[Return Cached Answer + Verified Sources]
+    Query(["Student Query Inbound"]) --> Normalizer["Normalize Query: Trim, Lowercase, Strip Punctuation"]
+    Normalizer --> Hasher["Compute SHA-256 Hash"]
+
+    subgraph T1["Tier 1: Exact Query Cache (Redis)"]
+        Hasher --> ExactLookup{"Redis GET rag:vN:public:HASH"}
+        ExactLookup -->|"Cache HIT, under 10ms"| ReturnExact["Return Cached Answer + Verified Sources"]
     end
 
-    subgraph "Tier 2: Semantic Vector Cache"
-        ExactLookup -->|Cache MISS| PrivacyCheck{Is Semantic Cache Eligible?}
-        PrivacyCheck -->|No: Personal Keywords Detected| FullRAG[Proceed to Full RAG Pipeline]
-        PrivacyCheck -->|Yes: Public Academic Query| EmbedQuery[Generate 768d Vector via text-embedding-004]
-        EmbedQuery --> CosineScan[Scan Cached Embeddings in rag:v{version}:semantic:index]
-        CosineScan --> SimCheck{Highest Cosine Similarity >= Threshold?}
-        SimCheck -->|Score >= 0.88 - 0.92| ReturnSemantic[Return Semantic Cache Hit with Match Score Badge]
+    subgraph T2["Tier 2: Semantic Vector Cache"]
+        ExactLookup -->|"Cache MISS"| PrivacyCheck{"Is Semantic Cache Eligible?"}
+        PrivacyCheck -->|"No: Personal Keywords Detected"| FullRAG["Proceed to Full RAG Pipeline"]
+        PrivacyCheck -->|"Yes: Public Academic Query"| EmbedQuery["Generate 768d Vector via text-embedding-004"]
+        EmbedQuery --> CosineScan["Scan Cached Embeddings in rag:vN:semantic:index"]
+        CosineScan --> SimCheck{"Highest Cosine Similarity at or above Threshold?"}
+        SimCheck -->|"Score 0.88 to 0.92 or higher"| ReturnSemantic["Return Semantic Cache Hit with Match Score Badge"]
     end
 
-    subgraph "Fallback & Cache Population"
-        SimCheck -->|Score < Threshold| FullRAG
-        FullRAG --> Generation[LLM Generation + Evidence Validation]
-        Generation --> CacheStore[Asynchronously Populate Tier 1 & Tier 2 Caches]
-        CacheStore --> ReturnNew[Stream Verified Answer to Student]
+    subgraph FB["Fallback and Cache Population"]
+        SimCheck -->|"Score below Threshold"| FullRAG
+        FullRAG --> Generation["LLM Generation + Evidence Validation"]
+        Generation --> CacheStore["Asynchronously Populate Tier 1 and Tier 2 Caches"]
+        CacheStore --> ReturnNew["Stream Verified Answer to Student"]
     end
 
-    ReturnExact --> Client([Client Response])
+    ReturnExact --> Client(["Client Response"])
     ReturnSemantic --> Client
     ReturnNew --> Client
 ```
+
+> In the diagram, `vN` is the active cache version and `HASH` is the SHA-256 digest of the normalized query. The text below uses `{version}` and `{hash}`.
 
 ---
 
 #### 1. Tier 1 — Exact Query Cache
 
 * **Relevant Source Files:**
-  * [`backend/src/services/cache/cacheKey.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/cacheKey.js) — Normalization rules & SHA-256 hashing.
-  * [`backend/src/services/cache/exactQueryCache.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/exactQueryCache.js) — Redis lookup, storage, and hit/miss metric updates.
-  * [`backend/src/services/cache/cacheService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/cacheService.js) — Resilient Redis command abstraction with automatic offline fallback.
-  * [`backend/src/config/redis.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/config/redis.js) — Redis client connection & in-memory mock fallback.
+  * [`backend/src/services/cache/cacheKey.js`](backend/src/services/cache/cacheKey.js) — Normalization rules & SHA-256 hashing.
+  * [`backend/src/services/cache/exactQueryCache.js`](backend/src/services/cache/exactQueryCache.js) — Redis lookup, storage, and hit/miss metric updates.
+  * [`backend/src/services/cache/cacheService.js`](backend/src/services/cache/cacheService.js) — Resilient Redis command abstraction with automatic offline fallback.
+  * [`backend/src/config/redis.js`](backend/src/config/redis.js) — Redis client connection & in-memory mock fallback.
 
 * **Technique & Algorithm:**
   1. **Canonical Query Normalization (`normalizeQuery`):**
@@ -162,15 +166,20 @@ flowchart TD
      * Collapses duplicate whitespace sequences (`\s+`) into a single space.
      * Converts characters to lowercase.
      * Removes trailing terminal punctuation (`?`, `!`, `.`).
-     $$\text{"  What is the minimum attendance requirement???  "} \longrightarrow \text{"what is the minimum attendance requirement"}$$
+
+     Example:
+     ```text
+     "  What is the minimum attendance requirement???  "  →  "what is the minimum attendance requirement"
+     ```
   2. **Deterministic Cryptographic Hashing (`hashQuery`):**
      * Computes the SHA-256 hex digest of the normalized string:
+
        $$\text{Hash} = \text{SHA-256}(\text{normalizedQuery})$$
   3. **Key Construction (`getExactCacheKey`):**
      * **Public Queries:** `rag:v{version}:public:{hash}`
      * **User-Scoped Queries:** `rag:v{version}:user:{userId}:{hash}`
   4. **Execution & TTL:**
-     * Direct Redis `GET` execution completes in **$< 10\text{ms}$**.
+     * Direct Redis `GET` execution completes in **under 10 ms**.
      * Entries are stored with a default TTL of 3600 seconds (1 hour, configurable via `RAG_CACHE_TTL_SECONDS`).
      * On hit, increments atomic Redis counter `metrics:rag:exact_hits`; on miss, increments `metrics:rag:exact_misses`.
 
@@ -179,9 +188,9 @@ flowchart TD
 #### 2. Tier 2 — Semantic Vector Cache
 
 * **Relevant Source Files:**
-  * [`backend/src/services/cache/semanticCache.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/semanticCache.js) — Vector cosine similarity scanning, bounded index management, and FIFO eviction.
-  * [`backend/src/services/ai/embeddingService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/ai/embeddingService.js) — Google Gemini `text-embedding-004` (768 dimensions).
-  * [`backend/src/services/cache/cacheKey.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/cacheKey.js) — Privacy firewall guard (`isSemanticCacheEligible`).
+  * [`backend/src/services/cache/semanticCache.js`](backend/src/services/cache/semanticCache.js) — Vector cosine similarity scanning, bounded index management, and FIFO eviction.
+  * [`backend/src/services/ai/embeddingService.js`](backend/src/services/ai/embeddingService.js) — Google Gemini `text-embedding-004` (768 dimensions).
+  * [`backend/src/services/cache/cacheKey.js`](backend/src/services/cache/cacheKey.js) — Privacy firewall guard (`isSemanticCacheEligible`).
 
 * **Technique & Algorithm:**
   1. **Privacy Guardrail Firewall (`isSemanticCacheEligible`):**
@@ -190,10 +199,11 @@ flowchart TD
      * If the query misses Tier 1 and is eligible, it is converted into a 768-dimensional dense vector using Gemini's `text-embedding-004`.
   3. **Cosine Similarity Computation:**
      * Computes exact cosine similarity against all active cached query embeddings in the current version index (`rag:v{version}:semantic:index`):
+
        $$\text{Cosine Similarity}(A, B) = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\|_2 \|\mathbf{B}\|_2} = \frac{\sum_{i=1}^{768} A_i B_i}{\sqrt{\sum_{i=1}^{768} A_i^2} \sqrt{\sum_{i=1}^{768} B_i^2}}$$
   4. **Configurable Similarity Threshold:**
-     * Controlled via `SEMANTIC_CACHE_THRESHOLD` (defaults to **$0.88$** up to **$0.92$**).
-     * If the best match achieves $\text{Similarity} \ge \text{Threshold}$, the cached answer and verified sources are returned immediately with:
+     * Controlled via `SEMANTIC_CACHE_THRESHOLD` (defaults to **0.88** up to **0.92**).
+     * If the best match achieves similarity ≥ threshold, the cached answer and verified sources are returned immediately with:
        ```json
        "cache": {
          "hit": true,
@@ -213,9 +223,9 @@ flowchart TD
 #### 3. Cache Invalidation & Atomic Versioned Namespaces
 
 * **Relevant Source Files:**
-  * [`backend/src/services/cache/cacheInvalidation.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/cache/cacheInvalidation.js) — Atomic version counter bumping and active namespace resolution.
-  * [`backend/src/routes/adminRoutes.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/routes/adminRoutes.js) — Administrative endpoints (`GET /api/admin/cache/stats`, `POST /api/admin/cache/invalidate`).
-  * [`frontend/src/pages/AdminDashboard.jsx`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/frontend/src/pages/AdminDashboard.jsx) — Live Redis hit-rate monitoring & one-click cache invalidation UI.
+  * [`backend/src/services/cache/cacheInvalidation.js`](backend/src/services/cache/cacheInvalidation.js) — Atomic version counter bumping and active namespace resolution.
+  * [`backend/src/routes/adminRoutes.js`](backend/src/routes/adminRoutes.js) — Administrative endpoints (`GET /api/admin/cache/stats`, `POST /api/admin/cache/invalidate`).
+  * [`frontend/src/pages/AdminDashboard.jsx`](frontend/src/pages/AdminDashboard.jsx) — Live Redis hit-rate monitoring & one-click cache invalidation UI.
 
 * **Technique & Algorithm:**
   1. **The Problem with Traditional `KEYS *` / `DEL` Flushes:**
@@ -225,28 +235,30 @@ flowchart TD
      * All exact and semantic cache keys are namespaced with the version:
        * `rag:v1:public:<hash>`
        * `rag:v1:semantic:index`
-     * When any knowledge update occurs, the system executes an atomic increment:
-       $$\text{INCR } \texttt{rag:config:cache\_version} \longrightarrow v_2$$
-     * All subsequent reads and writes immediately target `rag:v2:...` in **$O(1)$** time ($< 1\text{ms}$).
+     * When any knowledge update occurs, the system executes an atomic increment on the version key:
+
+       $$\text{INCR}(v_1) \longrightarrow v_2$$
+     * All subsequent reads and writes immediately target `rag:v2:...` in **O(1)** time (under 1 ms).
      * Stale `v1` keys naturally expire according to their TTLs with zero blocking overhead.
 
 * **Automated Invalidation Triggers Across the Platform:**
+
   | Event / Action | Source File | Trigger Call |
   |---|---|---|
-  | **Admin PDF Upload / Re-index** | [`backend/src/services/ingestion/ingestionService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/ingestion/ingestionService.js) | `cacheInvalidation.incrementCacheVersion("Document Ingested: ...")` |
-  | **Document Deletion / Approval** | [`backend/src/controllers/documentController.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/controllers/documentController.js) | `cacheInvalidation.incrementCacheVersion("Document Deleted: ...")` |
-  | **Web Crawler HTML Page Ingestion** | [`backend/src/services/crawler/crawlerEngine.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/crawler/crawlerEngine.js) | `cacheInvalidation.incrementCacheVersion("HTML Page Indexed: ...")` |
-  | **Academic Calendar / Circular Updates**| [`backend/src/services/events/academicEventService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/events/academicEventService.js) | `cacheInvalidation.incrementCacheVersion("Academic Event: ...")` |
-  | **Course Curriculum / Syllabus Updates**| [`backend/src/services/courses/courseService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/courses/courseService.js) | `cacheInvalidation.incrementCacheVersion("Course Created/Updated: ...")` |
-  | **Manual Admin Dashboard Flush** | [`backend/src/routes/adminRoutes.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/routes/adminRoutes.js) | `POST /api/admin/cache/invalidate` $\rightarrow$ `cacheInvalidation.invalidateRagCache()` |
+  | **Admin PDF Upload / Re-index** | [`ingestionService.js`](backend/src/services/ingestion/ingestionService.js) | `cacheInvalidation.incrementCacheVersion("Document Ingested: ...")` |
+  | **Document Deletion / Approval** | [`documentController.js`](backend/src/controllers/documentController.js) | `cacheInvalidation.incrementCacheVersion("Document Deleted: ...")` |
+  | **Web Crawler HTML Page Ingestion** | [`crawlerEngine.js`](backend/src/services/crawler/crawlerEngine.js) | `cacheInvalidation.incrementCacheVersion("HTML Page Indexed: ...")` |
+  | **Academic Calendar / Circular Updates** | [`academicEventService.js`](backend/src/services/events/academicEventService.js) | `cacheInvalidation.incrementCacheVersion("Academic Event: ...")` |
+  | **Course Curriculum / Syllabus Updates** | [`courseService.js`](backend/src/services/courses/courseService.js) | `cacheInvalidation.incrementCacheVersion("Course Created/Updated: ...")` |
+  | **Manual Admin Dashboard Flush** | [`adminRoutes.js`](backend/src/routes/adminRoutes.js) | `POST /api/admin/cache/invalidate` → `cacheInvalidation.invalidateRagCache()` |
 
 ---
 
 #### 4. End-to-End Orchestration in RAG Pipeline
 
-* **Primary Coordinator:** [`backend/src/services/rag/ragService.js`](file:///d:/CODING/WEB%20DEV/Projects/AskCampusAi/backend/src/services/rag/ragService.js)
-  * **Lines 197–233:** Resolves active cache version $\rightarrow$ Queries Tier 1 `exactQueryCache.get()`. If hit, streams tokens, emits verified sources, and exits immediately ($< 10\text{ms}$).
-  * **Lines 238–265:** If Tier 1 misses, validates `isSemanticCacheEligible()` $\rightarrow$ Queries Tier 2 `semanticCache.findSimilar()`. If cosine similarity $\ge \text{threshold}$, streams tokens with the semantic similarity score and exits ($< 50\text{ms}$).
+* **Primary Coordinator:** [`backend/src/services/rag/ragService.js`](backend/src/services/rag/ragService.js)
+  * **Lines 197–233:** Resolves active cache version → Queries Tier 1 `exactQueryCache.get()`. If hit, streams tokens, emits verified sources, and exits immediately (under 10 ms).
+  * **Lines 238–265:** If Tier 1 misses, validates `isSemanticCacheEligible()` → Queries Tier 2 `semanticCache.findSimilar()`. If cosine similarity ≥ threshold, streams tokens with the semantic similarity score and exits (under 50 ms).
   * **Lines 267–444:** If both tiers miss, executes dense vector search + BM25 keyword retrieval + Reciprocal Rank Fusion + Claim Evidence Assessment + Gemini LLM generation.
   * **Lines 446–463:** Upon successful answer generation, writes asynchronously to **both** `exactQueryCache.set()` and `semanticCache.store()` for subsequent requests.
 
@@ -262,11 +274,13 @@ flowchart TD
      * Tokenizes query and runs exact matching against indexed chunk keywords, document numbers, and rule codes (e.g., `"Rule 4.2.1"` or `"B.Tech Ordinance"`).
   3. **Reciprocal Rank Fusion (RRF):**
      * Blends the ranked lists from both vector search and keyword search without needing normalized scores:
+
        $$RRF(d) = \sum_{m \in M} \frac{1}{k + r_m(d)}$$
-       *(where $k = 60$, $M = \{\text{dense}, \text{sparse}\}$, and $r_m(d)$ is the rank of document $d$ in system $m$)*.
+
+       *(where k = 60, M = {dense, sparse}, and r_m(d) is the rank of document d in system m)*.
   4. **Heuristic Reranking:**
      * Applies domain-specific weighting boosts:
-       * **Source Authority:** Official university regulations received higher weight than student drive notes.
+       * **Source Authority:** Official university regulations receive higher weight than student drive notes.
        * **Recency:** Newer academic calendar years receive a time-decay boost.
        * **Entity Match:** Chunks matching the student's department and semester receive extra weight.
 
@@ -351,7 +365,14 @@ flowchart TD
      * Authenticates with service credentials to scan designated public community folders.
   2. **Hierarchical Path Metadata Extractor:**
      * Analyzes folder naming conventions to infer academic metadata automatically:
-       $$\text{Folder: } \texttt{/B.Tech/Computer Engineering/Semester 4/2023/} \implies \begin{cases} \text{Program} = \text{B.Tech} \\ \text{Branch} = \text{Computer Engineering} \\ \text{Semester} = 4 \\ \text{Year} = 2023 \end{cases}$$
+
+       ```text
+       Folder: /B.Tech/Computer Engineering/Semester 4/2023/
+         → Program  = B.Tech
+         → Branch   = Computer Engineering
+         → Semester = 4
+         → Year     = 2023
+       ```
   3. **Question-Level Extraction:**
      * Where possible, individual questions, marks allocations, and exam types (Mid-Sem / End-Sem) are extracted into structured MongoDB `PyqDocument` records for question-specific retrieval.
 
@@ -515,7 +536,7 @@ JWT_SECRET=your_super_secret_jwt_key_here
 JWT_EXPIRE=30d
 
 # Google Gemini AI API
-GEMINI_API_KEY=AIzaSy...
+GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-1.5-flash
 EMBEDDING_MODEL=text-embedding-004
 
@@ -582,5 +603,5 @@ VITE_API_URL=http://localhost:5000/api
 ---
 
 ## 📜 License & Acknowledgments
-Developed with pride for the student and faculty community of **National Institute of Technology, Kurukshetra**.  
+Developed with pride for the student and faculty community of **National Institute of Technology, Kurukshetra**.
 Powered by Google Gemini AI, Qdrant Vector Search, and the open-source web ecosystem.
