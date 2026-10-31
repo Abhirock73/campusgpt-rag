@@ -3,6 +3,9 @@
 > **An AI-powered, retrieval-augmented campus intelligence platform designed for NIT Kurukshetra students and faculty.**
 > Built to eliminate academic information fragmentation by providing verified, instant answers to university regulations, course syllabi, exam schedules, and previous year question papers (PYQs).
 
+### 🚀 Live Demo
+**[Try CampusGPT live → campus-gpt-pi.vercel.app](https://campus-gpt-pi.vercel.app/login)**
+
 ---
 
 ## 📑 Table of Contents
@@ -597,6 +600,7 @@ VITE_API_URL=http://localhost:5000/api
    *The frontend starts at `http://localhost:5173`.*
 
 4. **Access the Application:**
+   * Don't want to set it up locally? Use the [live demo](https://campus-gpt-pi.vercel.app/login).
    * Open `http://localhost:5173` in your browser.
    * Register a student account or log in with an administrator account to explore the knowledge crawler and RAG diagnostics dashboard.
 
